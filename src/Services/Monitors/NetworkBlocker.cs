@@ -1,19 +1,28 @@
-namespace blocker.Services
+using System.Collections.Generic;
+
+using blocker.Models;
+using blocker.Services;
+
+namespace blocker.Services.Monitors
 {
-    public class HostsFileManager
+    public class NetworkBlocker
     {
         private const string HostsFilePath = @"C:\Windows\System32\drivers\etc\hosts";
         private const string LocalhostIP = "127.0.0.1";
 
-        public void AddEntry(string entry)
+        public void AddEntry(BlockTargetSite entry, BlockerTimer timer)
         {
-            string temp_entry = $"{LocalhostIP} {entry}";
+            string entryWithIp = $"{LocalhostIP} {entry.Domain}";
 
             var existingLines = File.ReadAllLines(HostsFilePath);
-            if (!existingLines.Any(line => line.Contains(temp_entry)))
+            if (!existingLines.Any(line => line.Contains(entryWithIp)))
             {
-                File.AppendAllText(HostsFilePath, temp_entry + Environment.NewLine);
-                Console.WriteLine($"Добавлена запись: {temp_entry}");
+                File.AppendAllText(HostsFilePath, entryWithIp + Environment.NewLine);
+                Console.WriteLine($"Добавлена запись: {entryWithIp}");
+            }
+            else
+            {
+                Console.WriteLine($"Запись для домена {entry} уже существует.");
             }
         }
 
