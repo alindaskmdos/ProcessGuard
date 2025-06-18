@@ -73,6 +73,8 @@ namespace ProcessGuard.Services
 
         public void Dispose()
         {
+            BlockingStarted = null;
+            BlockingEnded = null;
             _timer?.Dispose();
         }
     }
