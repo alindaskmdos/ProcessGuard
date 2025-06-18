@@ -1,16 +1,16 @@
 using System.Collections.Generic;
 
-using blocker.Models;
-using blocker.Services;
+using ProcessGuard.Models;
+using ProcessGuard.Services;
 
-namespace blocker.Services.Monitors
+namespace ProcessGuard.Services.Monitors
 {
     public class NetworkBlocker
     {
         private const string HostsFilePath = @"C:\Windows\System32\drivers\etc\hosts";
         private const string LocalhostIP = "127.0.0.1";
 
-        public void AddEntry(BlockTargetSite entry, BlockerTimer timer)
+        public void AddEntry(BlockTargetSite entry)
         {
             string entryWithIp = $"{LocalhostIP} {entry.Domain}";
 
@@ -33,11 +33,6 @@ namespace blocker.Services.Monitors
                 .ToArray();
             File.WriteAllLines(HostsFilePath, lines);
             Console.WriteLine($"Удалена запись для домена: {entry}");
-        }
-
-        public List<string> GetEntries()
-        {
-            return File.ReadAllLines(HostsFilePath).ToList();
         }
     }
 }

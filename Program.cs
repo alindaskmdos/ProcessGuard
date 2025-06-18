@@ -2,58 +2,44 @@
 using System.Runtime.InteropServices;
 using System.Collections.Specialized;
 using System.Security.Principal;
+using System.Management;
+using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
-using blocker.Models;
-using blocker.Services;
-using blocker.Services.Registers;
+using ProcessGuard.Models;
+using ProcessGuard.Services;
+using ProcessGuard.Services.Registers;
+using ProcessGuard.Services.Monitors;
 
-namespace blocker
+namespace ProcessGuard
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            // try
-            // {
-            //     WebsiteBlockRegistry hostExecutionContext = new WebsiteBlockRegistry();
-            //     string blockEntry = "www.twitch.tv";
+            var services = new ServiceCollection();
+            services.AddSingleton<NetworkBlocker>();
+            services.AddSingleton<ApplicationBlockRegistry>();
+            services.AddSingleton<WebsiteBlockRegistry>();
+            services.AddSingleton<ProcessBlocker>();
 
-            //     BlockerTimer blockTimer = new BlockerTimer(DateTime.Now, DateTime.Now.AddMinutes(2));
+            var serviceProvider = services.BuildServiceProvider();
 
-            //     blockTimer.BlockingStarted += () =>
-            //     {
-            //         Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Блокировка началась");
-            //         hostExecutionContext.AddEntry(blockEntry);
-            //     };
+            var processBlocker = serviceProvider.GetService<ProcessBlocker>();
 
-            //     blockTimer.BlockingEnded += () =>
-            //     {
-            //         Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Блокировка началась");
-            //         hostExecutionContext.RemoveEntry(blockEntry);
-            //     };
+            var notebookApp = new BlockTargetApplication
+            {
+                ProcessName = "notepad",
+                IsEnabled = true,
+                IsBlockedPermanently = true
+            };
 
-            //     Console.WriteLine($"Блокиратор запущен! Время: {DateTime.Now:HH:mm:ss}");
-            //     Console.WriteLine($"Блокировка будет с {DateTime.Now:HH:mm:ss} до {DateTime.Now.AddMinutes(2):HH:mm:ss}");
-            //     Console.WriteLine("Нажмите 'q' для выхода или любую другую клавишу для проверки статуса...");
+            processBlocker.BlockApplicationOnStart(notebookApp);
 
-            //     ConsoleKeyInfo key;
-            //     do
-            //     {
-            //         key = Console.ReadKey(true);
-            //         if (key.KeyChar != 'q')
-            //         {
-            //             Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Программа работает... (нажмите 'q' для выхода)");
-            //         }
-            //     } while (key.KeyChar != 'q');
+            Console.ReadKey();
 
-            //     blockTimer.Dispose();
-            //     Console.WriteLine("Программа завершена.");
-            // }
-            // catch (Exception ex)
-            // {
-            //     Console.WriteLine($"Ошибка: {ex.Message}");
-            //     Console.ReadKey();
-            // }
+            processBlocker.Dispose();
         }
     }
 }

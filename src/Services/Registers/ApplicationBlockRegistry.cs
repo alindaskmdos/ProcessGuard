@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 
-using blocker.Models;
+using ProcessGuard.Models;
+using ProcessGuard.Services.Monitors;
 
-namespace blocker.Services.Registers
+namespace ProcessGuard.Services.Registers
 {
     public class ApplicationBlockRegistry
     {

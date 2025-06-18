@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 
-namespace blocker.Services
+namespace ProcessGuard.Services
 {
     public class BlockerTimer
     {
@@ -57,26 +57,12 @@ namespace blocker.Services
         {
             _isBlocking = true;
             BlockingStarted?.Invoke();
-
-            BlockProcesses();
         }
 
         private void StopBlocking()
         {
             _isBlocking = false;
             BlockingEnded?.Invoke();
-
-            UnBlockProcesses();
-        }
-
-        private void BlockProcesses()
-        {
-
-        }
-
-        private void UnBlockProcesses()
-        {
-
         }
 
         public void UpdateSchedule(DateTime newStartTime, DateTime newEndTime)

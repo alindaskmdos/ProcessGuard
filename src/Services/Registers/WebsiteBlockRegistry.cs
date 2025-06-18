@@ -1,15 +1,18 @@
 using System.Collections.Generic;
 
-using blocker.Models;
+using ProcessGuard.Models;
+using ProcessGuard.Services.Monitors;
 
-namespace blocker.Services.Registers
+namespace ProcessGuard.Services.Registers
 {
     public class WebsiteBlockRegistry
     {
         private Dictionary<BlockTargetSite, BlockerTimer> _blockedWebSites = new Dictionary<BlockTargetSite, BlockerTimer>();
+        private NetworkBlocker _networkBlocker;
 
-        public WebsiteBlockRegistry()
+        public WebsiteBlockRegistry(NetworkBlocker networkBlocker)
         {
+            _networkBlocker = networkBlocker;
             _blockedWebSites = new Dictionary<BlockTargetSite, BlockerTimer>();
         }
 
@@ -21,6 +24,8 @@ namespace blocker.Services.Registers
                 timer.BlockingStarted += () => OnBlockingStarted(entry);
                 timer.BlockingEnded += () => OnBlockingEnded(entry);
             }
+
+            _networkBlocker.AddEntry(entry);
 
             Console.WriteLine($"Добавлена блокировка для домена: {entry.Domain}");
         }
@@ -40,6 +45,7 @@ namespace blocker.Services.Registers
             var targetSite = _blockedWebSites.Keys.FirstOrDefault(site => site.Domain == entry);
             if (targetSite != null)
             {
+                _networkBlocker.RemoveEntry(entry);
                 _blockedWebSites.Remove(targetSite);
                 Console.WriteLine($"Удалена блокировка для домена: {entry}");
             }
