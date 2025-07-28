@@ -9,19 +9,28 @@ namespace ProcessGuard
     {
         static void Main(string[] args)
         {
+            if (!PasswordManager.IsPasswordSet())
+            {
+                PasswordManager.SetPassword();
+            }
+
+            Console.Clear();
+            Console.WriteLine("ProcessGuard - Родительский контроль");
+            Console.WriteLine("\nКоманды:");
+            Console.WriteLine("  block app notepad 30    - заблокировать приложение на 30 мин");
+            Console.WriteLine("  block site google.com   - заблокировать сайт на 60 мин");
+            Console.WriteLine("  unblock app notepad     - разблокировать приложение");
+            Console.WriteLine("  unblock site google.com - разблокировать сайт");
+            Console.WriteLine("  exit                    - выход\n");
+
             BlockManager blockManager = new BlockManager();
             ApplicationBlocker applicationBlocker = new ApplicationBlocker();
-            NetworkBlocker networkBlocker = new NetworkBlocker(); string command = String.Empty;
+            NetworkBlocker networkBlocker = new NetworkBlocker();
+
             while (true)
             {
-                Console.WriteLine("\nДоступные команды:");
-                Console.WriteLine("  block <app/site> <название> [минуты]  - заблокировать приложение/сайт");
-                Console.WriteLine("  unblock <app/site> <название>         - разблокировать приложение/сайт");
-                Console.WriteLine("  exit                                   - выход из программы\n");
-                Console.Write("Введите команду: ");
-
-                command = Console.ReadLine() ?? "";
-
+                Console.Write("> ");
+                string command = Console.ReadLine() ?? "";
                 string[] parts = command?.Split(' ') ?? new string[0];
 
                 switch (parts.Length > 0 ? parts[0].ToLower() : "")
@@ -44,8 +53,7 @@ namespace ProcessGuard
                                     BlockerTimer = new BlockerTimer(startTime, endTime)
                                 }; networkBlocker.Subscribe(blockManager);
                                 blockManager.BlockTarget(siteTarget);
-                                Console.WriteLine($"\n  Сайт '{siteName}' успешно заблокирован на {minutes} минут");
-                                Console.WriteLine($"  Время блокировки: {startTime:HH:mm} - {endTime:HH:mm}");
+                                Console.WriteLine($"Заблокирован сайт '{siteName}' на {minutes} мин");
                             }
                             else if (target == "app")
                             {
@@ -59,53 +67,61 @@ namespace ProcessGuard
                                 {
                                     Identifier = appName.EndsWith(".exe") ? appName : appName + ".exe",
                                     BlockerTimer = new BlockerTimer(startTime, endTime)
-                                }; applicationBlocker.Subscribe(blockManager);
+                                };
+                                applicationBlocker.Subscribe(blockManager);
                                 blockManager.BlockTarget(appTarget);
-                                Console.WriteLine($"\n  Приложение '{appName}' успешно заблокировано на {minutes} минут");
-                                Console.WriteLine($"  Время блокировки: {startTime:HH:mm} - {endTime:HH:mm}");
+                                Console.WriteLine($"Заблокировано приложение '{appName}' на {minutes} мин");
+                            }
+                            else
+                            {
+                                Console.WriteLine("Используйте: block app notepad 30 или block site google.com 60");
                             }
                         }
                         else
                         {
-                            Console.WriteLine("\n  Ошибка: Неверный формат команды");
-                            Console.WriteLine("  Используйте: block <app/site> <название> [минуты]");
-                            Console.WriteLine("  Пример: block app notepad 30");
+                            Console.WriteLine("Используйте: block app notepad 30 или block site google.com 60");
                         }
                         break;
                     case "unblock":
-                        if (parts.Length >= 3)
+                        if (PasswordManager.CheckPassword())
                         {
-                            string target = parts[1].ToLower(); if (target == "site")
+                            if (parts.Length >= 3)
                             {
-                                string siteName = parts[2];
-                                var siteTarget = new BlockTargetSite { Identifier = siteName };
-                                blockManager.UnblockTarget(siteTarget);
-                                Console.WriteLine($"\n  Сайт '{siteName}' успешно разблокирован");
-                            }
-                            else if (target == "app")
-                            {
-                                string appName = parts[2];
-                                var appTarget = new BlockTargetProcess
+                                string target = parts[1].ToLower();
+                                if (target == "site")
                                 {
-                                    Identifier = appName.EndsWith(".exe") ? appName : appName + ".exe"
-                                };
-                                blockManager.UnblockTarget(appTarget);
-                                Console.WriteLine($"\n  Приложение '{appName}' успешно разблокировано");
+                                    string siteName = parts[2];
+                                    var siteTarget = new BlockTargetSite { Identifier = siteName };
+                                    blockManager.UnblockTarget(siteTarget);
+                                    Console.WriteLine($"Разблокирован сайт '{siteName}'");
+                                }
+                                else if (target == "app")
+                                {
+                                    string appName = parts[2];
+                                    var appTarget = new BlockTargetProcess
+                                    {
+                                        Identifier = appName.EndsWith(".exe") ? appName : appName + ".exe"
+                                    };
+                                    blockManager.UnblockTarget(appTarget);
+                                    Console.WriteLine($"Разблокировано приложение '{appName}'");
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("Используйте: unblock app notepad или unblock site google.com");
                             }
                         }
                         else
                         {
-                            Console.WriteLine("\n  Ошибка: Неверный формат команды");
-                            Console.WriteLine("  Используйте: unblock <app/site> <название>");
-                            Console.WriteLine("  Пример: unblock app notepad");
+                            Console.WriteLine("Неверный пароль!");
                         }
                         break;
                     case "exit":
-                        Console.WriteLine();
                         return;
 
                     default:
-                        Console.WriteLine("\n  Неизвестная команда\n");
+                        if (!string.IsNullOrEmpty(command))
+                            Console.WriteLine("Неизвестная команда.");
                         break;
                 }
             }

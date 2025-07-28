@@ -21,6 +21,7 @@ namespace ProcessGuard.Core.Models
     public class BlockTargetProcess : BlockTargetType
     {
         public string ProcessName => Identifier;
+
     }
 
     public class BlockTargetSite : BlockTargetType
